@@ -18,10 +18,19 @@ public class GameProcess {
     private Integer amountGrass;
     private Integer amountMeat;
 
-    public void start() {
+    public void start() throws InterruptedException {
         inputStartData();
         createGameObject();
         showGameField();
+        while (endGame()) {
+            moveAnimal();
+            hungryDie();
+            showGameField();
+
+            Thread.sleep(3000);
+        }
+
+
     }
 
     private void inputStartData() {
@@ -29,7 +38,7 @@ public class GameProcess {
         System.out.println("Введите стартовое количество хищников");
         while (true) {
             amountPredator = scanner.nextInt();
-            if (amountPredator > 5||  amountPredator<0) {
+            if (amountPredator > 5 || amountPredator < 1) {
                 System.out.println("количество хищников не может быть больше 5ти");
                 continue;
             }
@@ -38,7 +47,7 @@ public class GameProcess {
         System.out.println("Введите стартовое количество травоядных");
         while (true) {
             amountHerbivore = scanner.nextInt();
-            if (amountHerbivore > 5 ) {
+            if (amountHerbivore > 5 || amountHerbivore < 1) {
                 System.out.println("количество травоядных не может быть больше 5ти");
                 continue;
             }
@@ -47,7 +56,7 @@ public class GameProcess {
         System.out.println("Введите стартовое количество травы");
         while (true) {
             amountGrass = scanner.nextInt();
-            if (amountGrass > 5) {
+            if (amountGrass > 5 || amountGrass < 1) {
                 System.out.println("количество травы не может быть больше 5ти");
                 continue;
             }
@@ -56,7 +65,7 @@ public class GameProcess {
         System.out.println("Введите стартовое количество мяса");
         while (true) {
             amountMeat = scanner.nextInt();
-            if (amountMeat > 5) {
+            if (amountMeat > 5 || amountMeat < 1) {
                 System.out.println("количество мяса не может быть больше 5ти");
                 continue;
             }
@@ -65,10 +74,10 @@ public class GameProcess {
     }
 
     private void createGameObject() {
-    createHerbivore();
-    createPredator();
-    createGrass();
-    createMeat();
+        createHerbivore();
+        createPredator();
+        createGrass();
+        createMeat();
     }
 
     private void createPredator() {
@@ -136,6 +145,82 @@ public class GameProcess {
         }
     }
 
+    private void moveAnimal() {
+        for (int i = 0; i < gameField.length; i++) {
+            for (int j = 0; j < gameField[i].length; j++) {
+                if (gameField[i][j] instanceof Predator) {
+                    movePredator(i, j);
+                }
+            }
+        }
+    }
+
+    private void movePredator(int x, int y) {
+        Random random = new Random();
+        if (!eatPredator(x, y)) {
+            while (true) {
+                int a = random.nextInt((x + 1) - (x - 1)) + x - 1;
+                int b = random.nextInt((y + 1) - (y - 1)) + y - 1;
+                if(a<0 || b<0 || a>gameField.length-1 || b>gameField.length-1){
+                  continue;
+                }
+                if (gameField[a][b] == null) {
+                    gameField[a][b] = gameField[x][y];
+                    gameField[x][y] = null;
+                    ((Animal) gameField[a][b]).starve();
+                    break;
+                }
+            }
+        }
+    }
+
+    private boolean eatPredator(int x, int y) {
+
+        for (int i = x - Animal.VISIBILITY; i < x + Animal.VISIBILITY; i++) {
+            for (int j = y - Animal.VISIBILITY; j < y + Animal.VISIBILITY; j++) {
+                if (i < 0 || j < 0 || i > gameField.length - 1 || j > gameField.length - 1) {
+                    continue;
+                }
+                if (gameField[i][j] instanceof Herbivore || gameField[i][j] instanceof Meat) {
+                    gameField[i][j] = gameField[x][y];
+                    amountHerbivore--;
+                    ((Animal) (gameField[i][j])).eat();
+                    gameField[x][y] = null;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    private void hungryDie(){
+        for (int i = 0; i < gameField.length; i++) {
+            for (int j = 0; j < gameField[i].length; j++) {
+                if (gameField[i][j] instanceof Animal) {
+                    if(((Animal) gameField[i][j]).getLife()==0){
+                        if(gameField[i][j] instanceof Predator){
+                            amountPredator--;
+                        }
+                        else if(gameField[i][j] instanceof Herbivore){
+                            amountHerbivore--;
+                        }
+                        gameField[i][j]=null;
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean endGame() {
+        if (amountHerbivore <= 0) {
+            System.out.println("Игра закончена. Хищники победили!");
+            return false;
+        }
+        if (amountPredator <= 0) {
+            System.out.println("Игра закончена. Травоядные победили!");
+            return false;
+        }
+        return true;
+    }
 
     private void showGameField() {
 
@@ -149,6 +234,8 @@ public class GameProcess {
             }
             System.out.println();
         }
+        System.out.println("-----------------------------------------------------------");
+        System.out.println("Хищников " + amountPredator + " Травоядных " + amountHerbivore);
     }
 
 
