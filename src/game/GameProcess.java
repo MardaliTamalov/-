@@ -22,11 +22,12 @@ public class GameProcess {
         inputStartData();
         createGameObject();
         showGameField();
+
         while (endGame()) {
             moveAnimal();
             hungryDie();
             showGameField();
-
+            generateFood();
             Thread.sleep(3000);
         }
 
@@ -151,6 +152,9 @@ public class GameProcess {
                 if (gameField[i][j] instanceof Predator) {
                     movePredator(i, j);
                 }
+                if(gameField[i][j] instanceof Herbivore){
+                    moveHerbivore(i,j);
+                }
             }
         }
     }
@@ -174,6 +178,44 @@ public class GameProcess {
         }
     }
 
+    private void moveHerbivore(int x, int y) {
+        Random random = new Random();
+        if (!eatHerbivore(x, y)) {
+            while (true) {
+                int a = random.nextInt((x + 1) - (x - 1)) + x - 1;
+                int b = random.nextInt((y + 1) - (y - 1)) + y - 1;
+                if(a<0 || b<0 || a>gameField.length-1 || b>gameField.length-1){
+                    continue;
+                }
+                if (gameField[a][b] == null) {
+                    gameField[a][b] = gameField[x][y];
+                    gameField[x][y] = null;
+                    ((Animal) gameField[a][b]).starve();
+                    break;
+                }
+            }
+        }
+    }
+
+    private boolean eatHerbivore(int x, int y) {
+
+        for (int i = x - Animal.VISIBILITY; i < x + Animal.VISIBILITY; i++) {
+            for (int j = y - Animal.VISIBILITY; j < y + Animal.VISIBILITY; j++) {
+                if (i < 0 || j < 0 || i > gameField.length - 1 || j > gameField.length - 1) {
+                    continue;
+                }
+                if (gameField[i][j] instanceof Grass) {
+                    gameField[i][j] = gameField[x][y];
+                    ((Animal) (gameField[i][j])).eat();
+                    gameField[x][y] = null;
+                    multiplyAnimal(i,j);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private boolean eatPredator(int x, int y) {
 
         for (int i = x - Animal.VISIBILITY; i < x + Animal.VISIBILITY; i++) {
@@ -186,6 +228,7 @@ public class GameProcess {
                     amountHerbivore--;
                     ((Animal) (gameField[i][j])).eat();
                     gameField[x][y] = null;
+                    multiplyAnimal(i,j);
                     return true;
                 }
             }
@@ -220,6 +263,68 @@ public class GameProcess {
             return false;
         }
         return true;
+    }
+    private void multiplyAnimal(int x, int y){
+        Random random=new Random();
+        boolean checkMultiply = random.nextBoolean();
+        if(checkMultiply){
+            Animal animal;
+            if(gameField[x][y] instanceof Predator){
+                animal = new Predator();
+                amountPredator++;
+            }else {
+                animal =new Herbivore();
+                amountHerbivore++;
+            }
+            while (true) {
+                int a = random.nextInt((x + 1) - (x - 1)) + x - 1;
+                int b = random.nextInt((y + 1) - (y - 1)) + y - 1;
+                if(a<0 || b<0 || a>gameField.length-1 || b>gameField.length-1){
+                    continue;
+                }
+                if ( gameField[a][b]== null) {
+                    gameField[a][b]=animal;
+                    System.out.println("Hello");
+                    break;
+                }
+            }
+        }
+
+    }
+    private void generateFood(){
+       generateMeat();
+       generateGrass();
+    }
+    private void generateGrass(){
+        Random random = new Random();
+        int countGrass =10;
+        int x;
+        int y;
+        while (countGrass != 0) {
+            x = random.nextInt(25);
+            y = random.nextInt(25);
+            if (gameField[x][y] == null) {
+                Food grass = new Grass();
+                gameField[x][y] = grass;
+                countGrass--;
+            }
+        }
+    }
+
+    private void generateMeat(){
+        Random random = new Random();
+        int countMeat = 10;
+        int x;
+        int y;
+        while (countMeat != 0) {
+            x = random.nextInt(25);
+            y = random.nextInt(25);
+            if (gameField[x][y] == null) {
+                Food meat = new Meat();
+                gameField[x][y] = meat;
+                countMeat--;
+            }
+        }
     }
 
     private void showGameField() {
