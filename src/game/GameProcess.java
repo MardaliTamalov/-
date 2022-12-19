@@ -28,12 +28,16 @@ public class GameProcess {
             hungryDie();
             showGameField();
             generateFood();
+            recuperation();
             Thread.sleep(3000);
         }
 
 
     }
 
+    /**
+     * метод реализует логику ввода данных стартового количества игровых объектов
+     */
     private void inputStartData() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Введите стартовое количество хищников");
@@ -74,6 +78,9 @@ public class GameProcess {
         }
     }
 
+    /**
+     * метод реализует логику стартовой генерации объектов классов в случайном месте игрового поля gameField
+     */
     private void createGameObject() {
         createHerbivore();
         createPredator();
@@ -81,12 +88,15 @@ public class GameProcess {
         createMeat();
     }
 
+    /**
+     *метод создает введенное количество объектов класса Хищник в рандомном месте
+     */
     private void createPredator() {
         Random random = new Random();
         int countPredators = amountPredator;
         int x;
         int y;
-        while (countPredators != 0) {
+        while (countPredators > 0) {
             x = random.nextInt(25);
             y = random.nextInt(25);
             if (gameField[x][y] == null) {
@@ -98,12 +108,15 @@ public class GameProcess {
 
     }
 
+    /**
+     *метод создает введенное количество объектов класса Травоядные в рандомном месте
+     */
     private void createHerbivore() {
         Random random = new Random();
         int countHerbivore = amountHerbivore;
         int x;
         int y;
-        while (countHerbivore != 0) {
+        while (countHerbivore > 0) {
             x = random.nextInt(25);
             y = random.nextInt(25);
             if (gameField[x][y] == null) {
@@ -114,12 +127,15 @@ public class GameProcess {
         }
     }
 
-    private void createGrass() {
+    /**
+     *метод реализует логику стартовой генерации объектов класса Grass в случайном месте игрового поля
+     */
+     private void createGrass() {
         Random random = new Random();
         int countGrass = amountGrass;
         int x;
         int y;
-        while (countGrass != 0) {
+        while (countGrass > 0) {
             x = random.nextInt(25);
             y = random.nextInt(25);
             if (gameField[x][y] == null) {
@@ -130,12 +146,15 @@ public class GameProcess {
         }
     }
 
+    /**
+     *метод создает введенное количество объектов класса Мяса в случайном месте игрового поля
+     */
     private void createMeat() {
         Random random = new Random();
         int countMeat = amountMeat;
         int x;
         int y;
-        while (countMeat != 0) {
+        while (countMeat > 0) {
             x = random.nextInt(25);
             y = random.nextInt(25);
             if (gameField[x][y] == null) {
@@ -146,27 +165,35 @@ public class GameProcess {
         }
     }
 
+    /**
+     *  метод реализует логику по перемещению в игровом поле объектов класса Animal в радиусе одной клетки
+     */
     private void moveAnimal() {
         for (int i = 0; i < gameField.length; i++) {
             for (int j = 0; j < gameField[i].length; j++) {
-                if (gameField[i][j] instanceof Predator) {
+                if (gameField[i][j] instanceof Predator && !((Predator) gameField[i][j]).isTired()) {
+                    ((Predator) gameField[i][j]).setTired(true);
                     movePredator(i, j);
                 }
-                if(gameField[i][j] instanceof Herbivore){
-                    moveHerbivore(i,j);
+                if (gameField[i][j] instanceof Herbivore && !((Herbivore) gameField[i][j]).isTired()) {
+                    ((Herbivore) gameField[i][j]).setTired(true);
+                    moveHerbivore(i, j);
                 }
             }
         }
     }
 
+    /**
+     * метод реализует логику по перемещению в игровом поле объектов класса Хищник в радиусе одной клетки
+     */
     private void movePredator(int x, int y) {
         Random random = new Random();
         if (!eatPredator(x, y)) {
             while (true) {
-                int a = random.nextInt((x + 1) - (x - 1)) + x - 1;
-                int b = random.nextInt((y + 1) - (y - 1)) + y - 1;
-                if(a<0 || b<0 || a>gameField.length-1 || b>gameField.length-1){
-                  continue;
+                int a = random.nextInt((x + 2) - (x - 1)) + x - 1;
+                int b = random.nextInt((y + 2) - (y - 1)) + y - 1;
+                if (a < 0 || b < 0 || a > gameField.length - 1 || b > gameField.length - 1) {
+                    continue;
                 }
                 if (gameField[a][b] == null) {
                     gameField[a][b] = gameField[x][y];
@@ -174,17 +201,23 @@ public class GameProcess {
                     ((Animal) gameField[a][b]).starve();
                     break;
                 }
+
             }
         }
     }
 
+    /**
+     * метод передвигает объекты класса Травоядные в радиусе одной клетки
+     * @param x
+     * @param y
+     */
     private void moveHerbivore(int x, int y) {
         Random random = new Random();
         if (!eatHerbivore(x, y)) {
             while (true) {
-                int a = random.nextInt((x + 1) - (x - 1)) + x - 1;
-                int b = random.nextInt((y + 1) - (y - 1)) + y - 1;
-                if(a<0 || b<0 || a>gameField.length-1 || b>gameField.length-1){
+                int a = random.nextInt((x + 2) - (x - 1)) + x - 1;
+                int b = random.nextInt((y + 2) - (y - 1)) + y - 1;
+                if (a < 0 || b < 0 || a > gameField.length - 1 || b > gameField.length - 1) {
                     continue;
                 }
                 if (gameField[a][b] == null) {
@@ -197,10 +230,16 @@ public class GameProcess {
         }
     }
 
+    /**
+     * метод имитурует питание Травоядных в радиусе 2 клеток
+     * @param x
+     * @param y
+     * @return
+     */
     private boolean eatHerbivore(int x, int y) {
 
-        for (int i = x - Animal.VISIBILITY; i < x + Animal.VISIBILITY; i++) {
-            for (int j = y - Animal.VISIBILITY; j < y + Animal.VISIBILITY; j++) {
+        for (int i = x - Animal.VISIBILITY; i <= x + Animal.VISIBILITY; i++) {
+            for (int j = y - Animal.VISIBILITY; j <= y + Animal.VISIBILITY; j++) {
                 if (i < 0 || j < 0 || i > gameField.length - 1 || j > gameField.length - 1) {
                     continue;
                 }
@@ -208,7 +247,7 @@ public class GameProcess {
                     gameField[i][j] = gameField[x][y];
                     ((Animal) (gameField[i][j])).eat();
                     gameField[x][y] = null;
-                    multiplyAnimal(i,j);
+                    multiplyAnimal(i, j);
                     return true;
                 }
             }
@@ -216,6 +255,12 @@ public class GameProcess {
         return false;
     }
 
+    /**
+     * метод имитурует питание Хищников в радиусе 2 клеток
+     * @param x
+     * @param y
+     * @return
+     */
     private boolean eatPredator(int x, int y) {
 
         for (int i = x - Animal.VISIBILITY; i < x + Animal.VISIBILITY; i++) {
@@ -224,35 +269,42 @@ public class GameProcess {
                     continue;
                 }
                 if (gameField[i][j] instanceof Herbivore || gameField[i][j] instanceof Meat) {
+                    if (gameField[i][j] instanceof Herbivore) {
+                        amountHerbivore--;
+                    }
                     gameField[i][j] = gameField[x][y];
-                    amountHerbivore--;
                     ((Animal) (gameField[i][j])).eat();
                     gameField[x][y] = null;
-                    multiplyAnimal(i,j);
+                    multiplyAnimal(i, j);
                     return true;
                 }
             }
         }
         return false;
     }
-    private void hungryDie(){
+
+
+    private void hungryDie() {
         for (int i = 0; i < gameField.length; i++) {
             for (int j = 0; j < gameField[i].length; j++) {
                 if (gameField[i][j] instanceof Animal) {
-                    if(((Animal) gameField[i][j]).getLife()==0){
-                        if(gameField[i][j] instanceof Predator){
+                    if (((Animal) gameField[i][j]).getLife() == 0) {
+                        if (gameField[i][j] instanceof Predator) {
                             amountPredator--;
-                        }
-                        else if(gameField[i][j] instanceof Herbivore){
+                        } else if (gameField[i][j] instanceof Herbivore) {
                             amountHerbivore--;
                         }
-                        gameField[i][j]=null;
+                        gameField[i][j] = null;
                     }
                 }
             }
         }
     }
 
+    /**
+     * завершает игру если животных не осталось
+     * @return
+     */
     private boolean endGame() {
         if (amountHerbivore <= 0) {
             System.out.println("Игра закончена. Хищники победили!");
@@ -264,40 +316,57 @@ public class GameProcess {
         }
         return true;
     }
-    private void multiplyAnimal(int x, int y){
-        Random random=new Random();
+
+    /**
+     *
+     * @param x
+     * @param y
+     */
+    private void multiplyAnimal(int x, int y) {
+        Random random = new Random();
         boolean checkMultiply = random.nextBoolean();
-        if(checkMultiply){
+        if (checkMultiply) {
             Animal animal;
-            if(gameField[x][y] instanceof Predator){
+            if (gameField[x][y] instanceof Predator) {
                 animal = new Predator();
+                animal.setTired(true);
                 amountPredator++;
-            }else {
-                animal =new Herbivore();
+            } else {
+                animal = new Herbivore();
+                animal.setTired(true);
                 amountHerbivore++;
             }
             while (true) {
-                int a = random.nextInt((x + 1) - (x - 1)) + x - 1;
-                int b = random.nextInt((y + 1) - (y - 1)) + y - 1;
-                if(a<0 || b<0 || a>gameField.length-1 || b>gameField.length-1){
+                int a = random.nextInt((x + 2) - (x - 1)) + x - 1;
+                int b = random.nextInt((y + 2) - (y - 1)) + y - 1;
+                if (a < 0 || b < 0 || a > gameField.length - 1 || b > gameField.length - 1) {
                     continue;
                 }
-                if ( gameField[a][b]== null) {
-                    gameField[a][b]=animal;
-                    System.out.println("Hello");
+                if (gameField[a][b] == null) {
+                    gameField[a][b] = animal;
                     break;
                 }
             }
         }
 
     }
-    private void generateFood(){
-       generateMeat();
-       generateGrass();
+
+
+    /**
+     * каждый ход генеруется некое количество каждого вида еды
+     */
+    private void generateFood() {
+        generateMeat();
+        generateGrass();
     }
-    private void generateGrass(){
+
+    /**
+     * каждый ход генеруется некое количество травы
+     */
+    private void generateGrass() {
+
         Random random = new Random();
-        int countGrass =10;
+        int countGrass = 5;
         int x;
         int y;
         while (countGrass != 0) {
@@ -311,9 +380,12 @@ public class GameProcess {
         }
     }
 
-    private void generateMeat(){
+    /**
+     * каждый ход генеруется некое количество мяса
+     */
+    private void generateMeat() {
         Random random = new Random();
-        int countMeat = 10;
+        int countMeat = 5;
         int x;
         int y;
         while (countMeat != 0) {
@@ -327,6 +399,19 @@ public class GameProcess {
         }
     }
 
+    private void recuperation() {
+        for (int i = 0; i < gameField.length; i++) {
+            for (int j = 0; j < gameField[i].length; j++) {
+                if (gameField[i][j] instanceof Animal) {
+                    ((Animal) gameField[i][j]).setTired(false);
+                }
+            }
+        }
+    }
+
+    /**
+     * метод выводит на экран
+     */
     private void showGameField() {
 
         for (Object[] objects : gameField) {

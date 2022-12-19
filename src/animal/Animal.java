@@ -3,7 +3,15 @@ package animal;
 public abstract class Animal{
  public static final Integer VISIBILITY = 2;
  private Integer life;
- private boolean  satiety;
+ private boolean  tired;
+
+ public boolean isTired() {
+  return tired;
+ }
+
+ public void setTired(boolean tired) {
+  this.tired = tired;
+ }
 
  public Integer getLife() {
   return life;
@@ -11,8 +19,7 @@ public abstract class Animal{
 
  public Animal() {
   life=3;
-  satiety = false;
- }
+   }
 
  public void starve(){
   life--;
